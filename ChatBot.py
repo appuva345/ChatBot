@@ -7,108 +7,113 @@ load_dotenv()
 
 secret_key = os.getenv("APP_PASS")
 email_s = os.getenv("MAIL_ID")
+print(secret_key)
 
-class RuleBot:
-    ##response
-    negative_res = ("no", "nope", "nah", "naw", "not a chance", "sorry")
-    exit_commands = ("quit", "pause", "exit", "goodbye", "bye", "later")
-    def book_or_not(self):
-        name = input("what is your name ?\n")
-        self.check_exit(name)
-        to_book_or_not = input(
-            f"Hi, {name}, I am here to help you book your train ticket. Do you wish to continue?\n")
-        self.check_exit(to_book_or_not)
-        self.yes_book()
 
-    def yes_book(self):
-        age = input("Enter your Age:")
-        if age in (self.negative_res, self.exit_commands):
-            print("Have nice day!")
+class TicketBookingBot:
+    negative_responses = ("no", "nah", "not really", "nope", "not today", "bye")
+    exit_commands = ("quit", "exit", "stop", "goodbye", "see you later", "later")
+
+    def start_booking_process(self):
+        user_name = input("🌟 Welcome! Could you please tell me your name?\n")
+        self.check_exit_command(user_name)
+        proceed = input(
+            f"😊 Nice to meet you, {user_name}! Are you interested in booking a train ticket today? (yes/no)\n")
+        self.check_exit_command(proceed)
+        self.confirm_booking()
+
+    def confirm_booking(self):
+        user_age = input("🎉 Great! First, can I know your age?\n")
+        if user_age in self.negative_responses or user_age in self.exit_commands:
+            print("👋 No worries! Have a lovely day!")
             exit()
-        if not age.isdigit():
-            print("Your response is invalid, please try again!")
-            self.yes_book()
-        elif int(age)<18:
-            print("You are too young too book!, Have a nice day")
+        if not user_age.isdigit():
+            print("🤔 Hmm, that doesn't look like a valid age. Could you try again?")
+            self.confirm_booking()
+        elif int(user_age) < 18:
+            print("🚫 I'm sorry, but you must be at least 18 years old to book a ticket.")
         else:
-            self.source()
+            print("👍 Awesome! Let's get started with your booking.")
+            self.get_departure_location()
 
-    def source(self):
-        source_place = input("Enter the name of the station you will be boarding from:").lower()
-        self.check_exit(source_place)
-        if not source_place.isalpha():
-            print("Your response is invalid, please try again!")
-            self.source()
+    def get_departure_location(self):
+        departure = input("🚉 Where will you be boarding from? Please share the station name:\n").lower()
+        self.check_exit_command(departure)
+        if not departure.isalpha():
+            print("❌ That doesn't seem right. Please enter a valid station name using letters only.")
+            self.get_departure_location()
         else:
-            self.destination(source_place)
+            print(f"🌍 Fantastic! You will be boarding from {departure.title()}.")
+            self.get_destination(departure)
 
-    def destination(self, source_place):
-        destination_place = input("Enter the name of the destination station:").lower()
-        self.check_exit(destination_place)
-        if not destination_place.isalpha():
-            self.destination()
+    def get_destination(self, departure):
+        destination = input("🌈 Now, where would you like to travel to?\n").lower()
+        self.check_exit_command(destination)
+        if not destination.isalpha():
+            self.get_destination(departure)
         else:
-            if destination_place == source_place:
-                print("Destination and Boarding cannot be same.")
-                self.destination()
-            self.c_mail()
+            if destination == departure:
+                print("⚠️ It looks like you've chosen the same station for departure and destination. Let's try again.")
+                self.get_destination(departure)
+            else:
+                print(f"🚄 Perfect! You're traveling from {departure.title()} to {destination.title()}.")
+                self.get_confirmation_email()
 
-    def c_mail(self):
-        email = input("Please enter your email for the confirmation:")
-        self.check_exit(email)
+    def get_confirmation_email(self):
+        email_input = input("📧 To confirm your booking, please enter your email address:\n")
+        self.check_exit_command(email_input)
 
-        """Check if the email is a valid format."""
-        # Regular expression for validating an Email
-        regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
-        # If the string matches the regex, it is a valid email
-        if re.match(regex, email):
-            self.send_otp(email)
+        email_regex = r'^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w+$'
+        if re.match(email_regex, email_input):
+            print(f"👍 Thank you! We'll send the confirmation to {email_input}.")
+            self.generate_otp(email_input)
         else:
-            print(f"'{email}' is an invalid email address.")
-            self.c_mail(email)
+            print(f"❌ Oops! The email '{email_input}' seems to be invalid. Let’s try that again.")
+            self.get_confirmation_email()
 
-    def send_otp(self, email):
-        # email send gmail
+    def generate_otp(self, email):
         import smtplib
         from email.mime.text import MIMEText
 
-        # Define your email content and credentials
-        subject = "Train Ticket"
-        otp_number = random.randint(1111, 9999)
-        body = "Your otp is " + str(otp_number)
+        subject = "🚀 Your Train Ticket Confirmation"
+        otp_code = random.randint(1000, 9999)
+        body = f"Hello! Your OTP for ticket confirmation is {otp_code}. Please enter this code to verify your email."
         sender_email = email_s
-        receiver_email = email
-        password = secret_key  # Be cautious with passwords in code!
+        recipient_email = email
+        password = secret_key
 
-        # Create MIMEText object
         message = MIMEText(body)
         message['Subject'] = subject
         message['From'] = sender_email
-        message['To'] = receiver_email
+        message['To'] = recipient_email
 
-        # Connect to Gmail's SMTP server
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:  # Note the use of port 587 for STARTTLS
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(sender_email, password)
-            server.sendmail(sender_email, receiver_email, message.as_string())  # Send the email
+            server.sendmail(sender_email, recipient_email, message.as_string())
 
-            print("Otp sent successfully!")
-        # print(otp_number)
-        opt = input("Enter the otp send to your email:")
-        if int(opt) == otp_number:
-            print("Verified, Your ticket will be send to you soon.")
+            print("📬 An OTP has been sent to your email! Please check your inbox.")
+
+        self.verify_otp(otp_code)
+
+    def verify_otp(self, actual_otp):
+        user_otp = input("🔑 Please enter the OTP you received:\n")
+        if user_otp == str(actual_otp):
+            print("✅ Verification successful! Your ticket will be confirmed shortly.")
         else:
-            print("wrong otp \n")
-            opt = input("Enter the otp send to your email:")
-            if opt == otp_number:
-                print("Verified, Your ticket will be send to you soon.")
+            print("❌ Hmm, that OTP doesn't match. Let's try again.")
+            retry_otp = input("🔄 Would you like to re-enter the OTP? (yes/no)\n").lower()
+            if retry_otp in ("yes", "y"):
+                self.verify_otp(actual_otp)
             else:
+                print("👋 No problem! If you need help later, just let me know. Have a great day!")
                 exit()
 
-    def check_exit(self, response):
-        if response in self.exit_commands or response in self.negative_res:
-            print("Have nice day!")
+    def check_exit_command(self, user_input):
+        if user_input in self.exit_commands or user_input in self.negative_responses:
+            print("👋 Thank you for visiting! Take care!")
             exit()
 
 
-bot = RuleBot()
-bot.book_or_not()
+if __name__ == "__main__":
+    bot = TicketBookingBot()
+    bot.start_booking_process()
