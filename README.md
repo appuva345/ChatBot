@@ -18,7 +18,7 @@ Setup:-
 Clone the repository:
 bash
 Copy code
-git clone https://github.com/yourusername/rulebot.git
+git clone git@github.com:appuva345/ChatBot.git
 cd rulebot
 
 Install dependencies:
