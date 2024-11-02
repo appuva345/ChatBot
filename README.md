@@ -16,25 +16,17 @@ smtplib for sending emails
 Setup:-
 
 Clone the repository:
-bash
-Copy code
 git clone git@github.com:appuva345/ChatBot.git
 cd rulebot
 
 Install dependencies:
-bash
-Copy code
 pip install python-dotenv
 
 Create a .env file in the root directory with the following variables:
-plaintext
-Copy code
 APP_PASS=your_email_password
 MAIL_ID=your_email@gmail.com
 
 Run the bot:
-bash
-Copy code
 python ChatBot.py
 
 Usage:-
